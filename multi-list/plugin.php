@@ -10,11 +10,14 @@ class multiList extends Plugin
 			'categorybutton' => 'Check categories',
 			'turnoncategories' => '',
 			'categoriescount' => '10',
+			'viewcategories' => 'form',
 
 			'tagstitle' => 'Tags list',
 			'tagsbutton' => 'Check tags',
 			'turnontags' => '',
 			'tagscount' => '10',
+
+			'viewtags' => 'form',
 		);
 	}
 
@@ -29,6 +32,15 @@ class multiList extends Plugin
 <option value="yes" ' . ($this->getValue('turnoncategories') == 'yes' ? 'selected' : '') . '>Yes</option>
 <option value="no"  ' . ($this->getValue('turnoncategories') == 'no' ? 'selected' : '') . '>No</option>
 		</select>
+
+		<br>
+
+		<p>View mode for categories</p>
+		<select name="viewcategories">
+<option value="form" ' . ($this->getValue('viewcategories') == 'form' ? 'selected' : '') . '>form</option>
+<option value="list"  ' . ($this->getValue('viewcategories') == 'list' ? 'selected' : '') . '>list</option>
+		</select>
+
 <br>
 		<p>Categories Title</p>
 		<input type="text" name="categorytitle" value="' . $this->getValue('categorytitle') . '">
@@ -48,6 +60,12 @@ class multiList extends Plugin
 		<select name="turnontags">
 <option value="yes" ' . ($this->getValue('turnontags') == 'yes' ? 'selected' : '') . '>Yes</option>
 <option value="no"  ' . ($this->getValue('turnontags') == 'no' ? 'selected' : '') . '>No</option>
+		</select>
+		<br>
+		<p>View mode for tags</p>
+		<select name="viewtags">
+<option value="form" ' . ($this->getValue('viewtags') == 'form' ? 'selected' : '') . '>form</option>
+<option value="list"  ' . ($this->getValue('viewtags') == 'list' ? 'selected' : '') . '>list</option>
 		</select>
 <br>
 		<p>Tags Title</p>
@@ -100,40 +118,84 @@ class multiList extends Plugin
 			$countCat = 0;
 
 
-			echo '<form class="category-form" style="margin:10px 0">
-<h5>' . $this->getValue('categorytitle') . '</h5>
-<select class="category-select" style="width:100%;background:#fff;border:solid 1px #ddd;padding:10px;">';
-			foreach ($categories->db as $key => $fields) {
+			if ($this->getValue('viewcategories') == 'form') {
 
-				if ($countCat < $this->getValue('categoriescount')) {
-					echo '<option value="' . DOMAIN_CATEGORIES . strtolower(str_replace(' ', '-', $fields['name'])) . '">' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</option>';
+				echo '<form class="category-form" style="margin:10px 0">
+			<h5>' . $this->getValue('categorytitle') . '</h5>
+			<select class="category-select" style="width:100%;background:#fff;border:solid 1px #ddd;padding:10px;">';
+				foreach ($categories->db as $key => $fields) {
+
+					if ($countCat < $this->getValue('categoriescount')) {
+						echo '<option value="' . DOMAIN_CATEGORIES . strtolower(str_replace(' ', '-', $fields['name'])) . '">' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</option>';
+					};
+					$countCat++;
 				};
-				$countCat++;
+
+				echo '</select>
+			<input type="submit" value="' . $this->getValue('categorybutton') . '" style="background:#000;border:none;margin-top:10px;color:#fff; padding:10px;">
+			</form>';
+
+
+				echo '<script>
+			
+			const categoryForm = document.querySelector(".category-form");
+			
+			categoryForm.querySelector(`input[type="submit"]`).addEventListener("click",(e)=>{
+			
+				e.preventDefault();
+				window.location.href = document.querySelector(".category-select").value;
+				 
+			})
+			
+			
+			if(document.querySelector(`select.category-select option[value="${window.location.href }"]`) !==null){
+				document.querySelector(".category-select").value = decodeURI(window.location.href);
 			};
+			
+			
+			</script>';
+			} else {
 
-			echo '</select>
-<input type="submit" value="' . $this->getValue('categorybutton') . '" style="background:#000;border:none;margin-top:10px;color:#fff; padding:10px;">
-</form>';
+				echo '
+				<style>
+
+				.cat-list{
+					display:flex;flex-wrap:wrap;
+					margin:10px 0;
+				}
+				.cat-list a{
+				background:#fafafa;border:solid 1px #ddd;
+				margin-right:5px;
+				margin-bottom:10px;
+				color:#333;
+				padding:5px;display:inline-block;
+				transition:all 250ms linear;
+				font-size:14px;
+				}
+
+				.cat-list a:hover{
+				text-decoration:none;
+				color:#fff;
+				background:#000;
+				}
+
+				</style>
+				
+				';
 
 
-			echo '<script>
+				echo '<h5>' . $this->getValue('categorytitle') . '</h5>';
+				echo '<div class="cat-list">';
+				foreach ($categories->db as $key => $fields) {
 
-const categoryForm = document.querySelector(".category-form");
+					if ($countCat < $this->getValue('categoriescount')) {
+						echo '<a href="' . DOMAIN_CATEGORIES . strtolower(str_replace(' ', '-', $fields['name'])) . '" > ' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</a>';
+					};
+					$countCat++;
+				};
 
-categoryForm.querySelector(`input[type="submit"]`).addEventListener("click",(e)=>{
-
-	e.preventDefault();
-	window.location.href = document.querySelector(".category-select").value;
-	 
-})
-
-
-if(document.querySelector(`select.category-select option[value="${window.location.href }"]`) !==null){
-	document.querySelector(".category-select").value = decodeURI(window.location.href);
-};
-
-
-</script>';
+				echo '</div>';
+			}
 		};
 
 
@@ -160,40 +222,85 @@ if(document.querySelector(`select.category-select option[value="${window.locatio
 			$count = 0;
 
 
-			echo '<form class="tag-form" style="margin:10px 0">
-	<h5>' . $this->getValue('tagstitle') . '</h5>
-	<select class="tag-select" style="width:100%;background:#fff;border:solid 1px #ddd;padding:10px;">';
-			foreach ($tags->db  as $key => $fields) {
+			if ($this->getValue('viewtags') == 'form') {
 
-				if ($count < $this->getValue('tagscount')) {
-					echo '<option value="' . DOMAIN_TAGS . strtolower(str_replace(' ', '-', $fields['name'])) . '">' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</option>';
+				echo '<form class="tag-form" style="margin:10px 0">
+			<h5>' . $this->getValue('tagstitle') . '</h5>
+			<select class="tag-select" style="width:100%;background:#fff;border:solid 1px #ddd;padding:10px;">';
+				foreach ($tags->db  as $key => $fields) {
+
+					if ($count < $this->getValue('tagscount')) {
+						echo '<option value="' . DOMAIN_TAGS . strtolower(str_replace(' ', '-', $fields['name'])) . '">' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</option>';
+					};
+					$count++;
 				};
-				$count++;
+
+				echo '</select>
+			<input type="submit" value="' . $this->getValue('tagsbutton') . '" style="background:#000;border:none;margin-top:10px;color:#fff; padding:10px;">
+			</form>';
+
+
+				echo '<script>
+		
+			const tagForm = document.querySelector(".tag-form");
+		
+			tagForm.querySelector(`input[type="submit"]`).addEventListener("click",(e)=>{
+		
+				e.preventDefault();
+				window.location.href = document.querySelector(".tag-select").value;
+				 
+			})
+		
+		
+			if(document.querySelector(`select.tag-select option[value="${window.location.href }"]`) !==null){
+				document.querySelector(".tag-select").value = decodeURI(window.location.href);
 			};
+			
+		
+			</script>';
+			} else {
 
-			echo '</select>
-	<input type="submit" value="' . $this->getValue('tagsbutton') . '" style="background:#000;border:none;margin-top:10px;color:#fff; padding:10px;">
-	</form>';
+				echo '
+				<style>
+
+				.tag-list{
+					display:flex;flex-wrap:wrap;
+					margin:10px 0;
+				}
+				.tag-list a{
+				background:#fafafa;border:solid 1px #ddd;
+				margin-right:5px;
+				color:#333;
+				margin-bottom:10px;
+				padding:5px;display:inline-block;
+				transition:all 250ms linear;
+				font-size:14px;
+				}
 
 
-			echo '<script>
+				.tag-list a:hover{
+				text-decoration:none;
+				color:#fff;
+				background:#000;
+				}
 
-	const tagForm = document.querySelector(".tag-form");
+				</style>
+				
+				';
 
-	tagForm.querySelector(`input[type="submit"]`).addEventListener("click",(e)=>{
+				echo '<h5>' . $this->getValue('tagstitle') . '</h5>';
+				echo '<div class="tag-list">';
 
-		e.preventDefault();
-		window.location.href = document.querySelector(".tag-select").value;
-		 
-	})
+				foreach ($tags->db  as $key => $fields) {
 
+					if ($count < $this->getValue('tagscount')) {
+						echo '<a href="' . DOMAIN_TAGS . strtolower(str_replace(' ', '-', $fields['name'])) . '">' . '(' . count($fields['list']) . ') ' . $fields['name'] . '</a>';
+					};
+					$count++;
+				};
 
-	if(document.querySelector(`select.tag-select option[value="${window.location.href }"]`) !==null){
-		document.querySelector(".tag-select").value = decodeURI(window.location.href);
-	};
-	
-
-	</script>';
+				echo '</div>';
+			};
 		};
 	}
 }
